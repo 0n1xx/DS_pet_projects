@@ -50,7 +50,8 @@
       - ```docker network create your_network_name```
    3. После давайте поднимем наш контейнер с Superset, подробнее о том как поднять Superset можно почитать [тут](https://hub.docker.com/r/apache/superset), а пока достаточно выполнить эту команду:
       - ```docker run -d --net=your_network_name -p your_pc_port:8088 --name superset apache/superset```
-   Немного пояснений:
+      
+      Немного пояснений:
    
       - ```--net=your_network_name``` -- имя сети, в которой будет находиться наш контейнер(superset);
       - ```-p your_pc_port:8088``` -- слева порт на вашем хосте, справа порт в контейнере;
