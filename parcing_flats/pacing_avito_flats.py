@@ -13,7 +13,7 @@ import telegram
 
 # Параметры для airflow
 default_args = {
-    'owner': Variable.get("AIRFLOW_OWNER"),  # airflow
+    'owner': Variable.get("AIRFLOW_OWNER"),  
     'depends_on_past': False,
     'email': Variable.get("MAIL_TO_REPORT"),
     'email_on_failure': True,
