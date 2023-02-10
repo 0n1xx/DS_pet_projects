@@ -51,7 +51,7 @@ def parce_flats(ti):
             # Ссылка на квартиру:
             var_link = flat.find("a",
                                  "link-link-MbQDP link-design-default-_nSbv title-root-zZCwT iva-item-title-py3i_ title-listRedesign-_rejR title-root_maxHeight-X6PsH")
-            if type(var_link) != type(None):
+            if var_link is not None:
                 local_var_link = "https://www.avito.ru" + var_link.get("href")
                 lst_links.append([local_var_link])
             else:
@@ -60,7 +60,7 @@ def parce_flats(ti):
             # Цена на квадратный метр:
             var_square = flat.find("span",
                                    class_="price-noaccent-X6dOy price-normalizedPrice-PplY9 text-text-LurtD text-size-s-BxGpL")
-            if type(var_square) != type(None):
+            if var_square is not None:
                 var = flat.find("span",
                                 class_="price-noaccent-X6dOy price-normalizedPrice-PplY9 text-text-LurtD text-size-s-BxGpL").text
                 correct_number_square_price = ""
@@ -76,7 +76,7 @@ def parce_flats(ti):
 
             # Полное число
             var_full_price = flat.find("span", class_="price-text-_YGDY text-text-LurtD text-size-s-BxGpL")
-            if type(var_full_price) != type(None):
+            if var_full_price is not None:
                 full_price = var_full_price.text
                 correct_number_full_price = ""
                 # Оставляем лишь число:
@@ -89,7 +89,7 @@ def parce_flats(ti):
 
             # Станция метро
             var_subway = flat.find('div', class_="geo-georeferences-SEtee text-text-LurtD text-size-s-BxGpL")
-            if type(var_subway) != type(None):
+            if var_subway is not None:
                 subway_name = var_subway.text
                 subway_full = ""
                 for var_subway_circle in subway_name:
@@ -107,7 +107,7 @@ def parce_flats(ti):
 
             # Расстояние до метро:
             var_minutes = flat.find("span", class_="geo-periodSection-bQIE4")
-            if type(var_minutes) != type(None):
+            if var_minutes is not None:
                 var_minutes_text = var_minutes.text
                 var_minutes_full = ""
                 for var_minute_circle in var_minutes_text:
