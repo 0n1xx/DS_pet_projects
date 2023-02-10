@@ -112,7 +112,8 @@
     - AIRFLOW_OWNER - имя юзера чей даг;
     - CLICKHOUSE_HOST - ip адрес Clickhouse;
     - TG_TOKEN_AVITO - токен бота;
-    - CHAT_ID_MOSCOW_FLATS - id чата. 
+    - CHAT_ID_MOSCOW_FLATS - id чата;
+    - MAIL_TO_REPORT - email для репортинга.
 
 После того как я выполнил все шаги, даг начнет работать успешно :)  
 
