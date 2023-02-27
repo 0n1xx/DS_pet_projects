@@ -178,16 +178,16 @@ def cheap_flats(ti):
     def q15(x):
         return x.quantile(0.15)
 
-    # Создаю датафрейм по каждой станции с 10 персентилем по каждой метрике
-    metro_10_percentile = df.groupby("subway", as_index=False).agg({"full_price": q15, "square_price": q15}).rename(
-        columns={"full_price": "full_price_10_percentile",
-                 "square_price": "square_price_10_percentile"}).sort_values(
-        "square_price_10_percentile", ascending=False)
+    # Создаю датафрейм по каждой станции с 15 персентилем по каждой метрике
+    metro_15_percentile = df.groupby("subway", as_index=False).agg({"full_price": q15, "square_price": q15}).rename(
+        columns={"full_price": "full_price_15_percentile",
+                 "square_price": "square_price_15_percentile"}).sort_values(
+        "square_price_15_percentile", ascending=False)
 
     needed_flats = df.query("destination_from_nearest_subway in ('5','6-10')")
-    both_frames = needed_flats.merge(metro_10_percentile, how="left", on="subway")
+    both_frames = needed_flats.merge(metro_15_percentile, how="left", on="subway")
     cheep_flats = both_frames.query(
-        "square_price <= square_price_10_percentile and full_price <= full_price_10_percentile").drop_duplicates(
+        "square_price <= square_price_15_percentile and full_price <= full_price_15_percentile").drop_duplicates(
         subset="links")
     cheep_flats = cheep_flats[
         ["square_price", "full_price", "subway", "links", "destination_from_nearest_subway", "quantity_of_metres"]]
