@@ -1,19 +1,14 @@
-### О репозитории:
+### About the repository:
 ____
 
-В данном репозитории будут храниться мои пет проекты. Смысл каждого проекта таков, что я изучаю какую-либо технологию,
-а после выполняю какое-либо задание, которое сам же себе и поставил. Также буду писать о ближайших планах своего обучения.
+This repository will store my pet projects. The idea of each project is that I study some technology, and then do some task that I came up with myself. I’ll also be writing about my upcoming learning plans.
 
+##### Analytical microservice for apartment analysis in Moscow:
+- In this project, I got familiar with parsing, specifically using the library (BeautifulSoup), and also studied Docker — huge thanks to my colleague Anton for that, here’s his excellent [course](https://karpov.courses/docker). Going forward, I want to dive deeper into parsing, namely:
+  - selenium (I started, but didn’t finish the basics);
+  - parsing Telegram;
+  - asynchronous parsing.
 
-##### Аналитический микросервис по анализу квартир в Москве:
-- В данном проекте я познакомился с парсингом, а конкретно с библиотекой (beatifulsoup), также изучил Docker и в этом 
-огромное спасибо моему коллеге Антону, вот его замечательный [курс](https://karpov.courses/docker). В дальнейшем хочу еще 
-больше изучить парсинг, а именно:
-  - selenium(начинал, но не до конца прошел основы);
-  - парсинг телеграмма;
-  - асинхронный парсинг.
+I also started to realize that I enjoy cleaning data and working with data delivery in one way or another, so maybe I’ll take a course in [DE](https://karpov.courses/dataengineer). Anyway, doing and learning something new is fun :)
 
-Также начал понимать что мне нравится очищать данные и тем или иным способом работать с доставкой данных, так что 
-возможно я пойду на курс по [de](https://karpov.courses/dataengineer). В любом случае делать и изучать что-то 
-новое прикольно :)
-А так проект можно посмотреть [тут](https://github.com/0n1xx/Pet_projects/blob/main/parcing_flats/parcing_flats_avito.ipynb). 
+And the project itself can be seen [here](https://github.com/0n1xx/Pet_projects/blob/main/parcing_flats/parcing_flats_avito.ipynb).
