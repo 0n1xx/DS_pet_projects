@@ -107,10 +107,6 @@ Initial requirements:
 
 Once all steps are done, the DAG will start working successfully :)
 
-And since I love data viz and tracking Moscow apartment prices is interesting, I built a dashboard that looks like this:
-
-![Dashboard](dashboard.jpg)
-
 ### Additional materials:
 
 - Materials used:
