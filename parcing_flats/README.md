@@ -1,63 +1,64 @@
-### Основная идея проекта:
+### Main idea of the project:
 
-- В современном мире очень сложно найти квартиру для покупки, чаще всего мы используем такие сайты как: "Авито", "Дом.Клик' и другие, но порой хочется увидеть утром какие-то выгодные предложения у себя в ленте, к примеру, в телеграмме. Именно для этого я сделал этот проект :) 
-Мне всегда хотелось, чтобы в моём телеграме был бот, который отправляет мне выгодные квартиры. Хотелось по нескольким причинам:
-  - Все находится в твоем любимом мессенджере;
-  - Сразу присылаются самые выгодные предложение;
-  - Можно ставить эмодзи на те предложения, которые вам понравилось.
-- Как по мне все это звучит прекрасно, но а теперь по проекту;
-- Канал в котором будут находиться квартиры [тут](https://t.me/moscow_flats_bot) :)
+- In today's world, it's very hard to find an apartment to buy. Most often, we use websites like "Avito", "DomKlik", and others, but sometimes you want to see some good deals in your feed in the morning, like in Telegram. That's exactly why I made this project :)
+I always wanted to have a bot in my Telegram that sends me good apartment deals. I had a few reasons for this:
+  - Everything is in your favourite messenger;
+  - You instantly get the best deals;
+  - You can put emojis on the listings you like.
+- To me, all this sounds great, so now about the project.
+- The channel where the apartments will be posted is [here](https://t.me/moscow_flats_bot) :)
 
-### Основные технологии:
+### Main technologies:
 
 - Docker:
-  - docker-compose; 
+  - docker-compose;
   - Superset,
-  - Clickhouse,
+  - Clickhouse (Database),
   - Airflow.
 - Python:
-  - apache-airflow и другие компоненты;
+  - apache-airflow and other components;
   - beautifulsoup4;
   - clickhouse-driver;
   - hyper;
   - pandas;
-  - telegram и другие компоненты;
-  - emoji (без него никак);
-- Git и основы командной строки.
+  - telegram and other components;
+  - emoji (can’t go without it) :)
+- Git and basic command line knowledge.
 
-Подробнее о версиях и компонентах библиотек можно почитать в файлике requirements.txt :) 
+More about versions and library components can be found in the requirements.txt file.
 
-### Ход проекта:
+### Project steps:
 
-Изначальные требования:
-- Все что будет в инструкциях будет адаптировано только под debian машинки;
-- В идеале нужно владеть технологиями, которые я прописал выше.
+Initial requirements:
+- Everything in the instructions is adapted only for Debian-based machines.
+- Ideally, you should be familiar with the technologies listed above.
 
-1. Для начала давайте проверим что у вас есть гит и докер, для этого выполните следующее:
-   - Для докера:
+1. First, let's check if you have git and Docker. To do this, run:
+   - For Docker:
      ```docker ps```
-   - Для гита:
+   - For git:
      ```git --version```
-   Если все оки, то продолжайте следовать мануалу, если вылезла какая-то ошибка, то вы можете погуглить что за ошибка или попробовать заново установить гит и docker: 
-      - [Дока по докеру](https://docs.docker.com/engine/install/ubuntu/);
-      - [Статья по установке докера](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04-ru);
-      - [Статья по установке гита](https://www.digitalocean.com/community/tutorials/how-to-install-git-on-ubuntu-20-04).
+   If all is good, continue following the manual. If you get an error, you can Google the error or try reinstalling git and Docker:
+      - [Docker Docs](https://docs.docker.com/engine/install/ubuntu/);
+      - [Docker Install Guide](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04-ru);
+      - [Git Install Guide](https://www.digitalocean.com/community/tutorials/how-to-install-git-on-ubuntu-20-04).
 
-2. Далее давайте развернем Superset и Clickhouse:
-   1. Для начала давайте создадим volume, в котором будет храниться наша информация о квартирах, это можно сделать следующей командой:
+2. Now let's launch Superset and Clickhouse:
+   1. First, create a volume to store our apartment data:
       - ```docker volume create your_volume_name```
-   2. После создаем сеть для Superset и Clickhouse, тем самым обособленные контейнеры смогут видеть друг друга, подробнее про это [тут](https://www.youtube.com/watch?v=bKFMS5C4CG0), также чтобы выполнить это нужно ввести эту команду:
+   2. Then create a network for Superset and Clickhouse so they can communicate. More details [here](https://www.youtube.com/watch?v=bKFMS5C4CG0). To do this:
       - ```docker network create your_network_name```
-   3. После давайте поднимем наш контейнер с Superset, подробнее о том как поднять Superset можно почитать [тут](https://hub.docker.com/r/apache/superset), а пока достаточно выполнить эту команду:
+   3. Next, let's run our Superset container. More details [here](https://hub.docker.com/r/apache/superset), but for now just run:
       - ```docker run -d --net=your_network_name -p your_pc_port:8088 --name superset apache/superset```
-      
-      Немного пояснений:
-   
-      - ```--net=your_network_name``` -- имя сети, в которой будет находиться наш контейнер(superset);
-      - ```-p your_pc_port:8088``` -- слева порт на вашем хосте, справа порт в контейнере;
-      - ```--name superset``` -- устанавливаем имя для контейнера, чтобы docker это не сделал за нас;
-      - И в конце прописываем образ.
-   4. Далее давайте установим суперпользователя в нашем superset, делается это с помощью следующей команды:
+
+      A few notes:
+
+      - ```--net=your_network_name``` — network name for Superset container;
+      - ```-p your_pc_port:8088``` — left is your host port, right is container port;
+      - ```--name superset``` — set a name for the container;
+      - Then we specify the image.
+
+   4. Now let’s create a superuser in Superset using this command:
       ``` 
         docker exec -it superset superset fab create-admin \
               --username your_username \
@@ -66,10 +67,10 @@
               --email admin@superset.com  \
               --password your_password \
       ```
-   5. После давайте накатим миграции и инициализируем суперпользователя, сделать это можно используя следующие команды:
+   5. Then apply migrations and initialize Superset:
       - ```docker exec -it superset superset db upgrade```;
       - ```docker exec -it superset superset init```.
-   6. С superset временно закончили, теперь давайте развернем базу данных, в нашем случае clickhouse, для этого выполните следующую команду:
+   6. Done with Superset for now, let’s set up the database — Clickhouse:
       - ```
         docker run -d\
         --name clickhouse\
@@ -78,50 +79,48 @@
          -p your_pc_port:9000\
           yandex/clickhouse-server
         ```
-      Немного пояснений:
-      - ```-v your_volume_name:/var/lib/clickhouse``` -- слева имя вашего заранее созданного вольюма, справа директория
-      в контейнере, которая будет трекаться вашим вольюмом.
-   7. Последним этапом остается подключить Clickhouse к Superset. Для этого нужно сходить в документацию и увидеть, что по дефолту мы не можем сделать этого, но нам может помочь библиотека, подробнее
-      [тут](https://superset.apache.org/docs/databases/clickhouse/). Устанавливаем библиотеку, используя эту команду:
-      - ```docker exec superset pip install clickhouse-sqlalchemy```;
-   8. Если в ходе моего гайда у вас возникли какие-либо ошибки, то можете смело глянуть вот этот [видос](https://www.youtube.com/watch?v=I1h2YaWW9PE&t=1s).
+      A few notes:
+      - ```-v your_volume_name:/var/lib/clickhouse``` — left is your volume name, right is the directory in the container being tracked.
 
-3. Далее вам понадобится скопировать репозиторий с моим кодом, кастомным airflow и с файликом, где будут прописаны все зависимости. Для этого воспользуйтесь командой:  ```git clone link_to_repository```.
-4. Теперь нам нужно построить образ нашей кастомной airflow, для этого нужно воспользоваться следующей командой:
-   - ```docker build . --tag your_custom_airflow:latest```. 
-   Подробнее про docker build можно почитать [тут](https://docs.docker.com/engine/reference/commandline/build/).
-5. Airflow состоит из нескольких сервисов и чтобы развернуть сразу несколько контейнеров, которые уже будут иметь общую сеть и будут взаимодействовать друг с другом, нам понадобится установить docker-compose, как это сделать:
-   - [Дока по установке docker-compose](https://docs.docker.com/compose/install/);
-   - [Статья по установке docker-compose](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-20-04).
-6. После установки нам стоит скачать yaml файлик airflow, небольшой гайд по его установке можно найти [тут](https://airflow.apache.org/docs/apache-airflow/2.5.1/docker-compose.yaml);
-7. После того как вы успешно скачали файлик, создали нужные для 'распаковки' airflow директории следует поднять ваш сервис. Это можно сделать используя следующую команду:
-   - ```docker-compose up```.
-8. После того как вы сделали это, вы можете убедиться, что при поднятии задалась дефолтная сеть, так называемая airflow_default. При этом мы помним, что Clickhouse и Superset у нас лежат в другой сети, так что давайте сконектим все контейнеры из сервиса airflow к нашей заранее созданной сети, для этого нам понадобится следующая команда:
-   - ```docker network connect your_network_name your_container_name``` -- подробнее про эту команду [тут](https://docs.docker.com/engine/reference/commandline/network_connect/). 
-9. Вы можете заметить, что в моем скрипте есть переменные, которые будут видны только airflow и вам тоже их нужно заполнить, чтобы ваш скрипт был рабочим. Подробнее про каждый:
-    - AIRFLOW_OWNER - имя юзера чей даг;
-    - CLICKHOUSE_HOST - ip адрес Clickhouse;
-    - TG_TOKEN_AVITO - токен бота;
-    - CHAT_ID_MOSCOW_FLATS - id чата;
-    - MAIL_TO_REPORT - email для репортинга.
+   7. The last step is connecting Clickhouse to Superset. Out of the box, it's not supported, but this library can help: [info](https://superset.apache.org/docs/databases/clickhouse/). Install it with:
+      - ```docker exec superset pip install clickhouse-sqlalchemy```
+        
+3. Now you need to clone the repo with my code, custom Airflow, and the requirements file. Use this command:  
+   - ```git clone link_to_repository```
+4. Next, build the image for our custom Airflow:
+   - ```docker build . --tag your_custom_airflow:latest```
+   More about Docker build [here](https://docs.docker.com/engine/reference/commandline/build/).
+5. Airflow consists of multiple services, and to deploy them together, use docker-compose. To install it:
+   - [Docker-compose Docs](https://docs.docker.com/compose/install/);
+   - [Guide](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-20-04).
+6. After installing, download the Airflow `docker-compose.yaml`. A small guide is [here](https://airflow.apache.org/docs/apache-airflow/2.5.1/docker-compose.yaml);
+7. After downloading and creating the needed directories, bring up the services:
+   - ```docker-compose up```
+8. After starting, a default network called airflow_default is created. But Clickhouse and Superset are in a different network, so connect all Airflow containers to your custom network:
+   - ```docker network connect your_network_name your_container_name``` — more info [here](https://docs.docker.com/engine/reference/commandline/network_connect/).
+9. You’ll notice variables in my script that only Airflow sees. You need to fill them out, too:
+    - AIRFLOW_OWNER — name of the DAG owner;
+    - CLICKHOUSE_HOST — IP of Clickhouse;
+    - TG_TOKEN_AVITO — bot token;
+    - CHAT_ID_MOSCOW_FLATS — chat ID;
+    - MAIL_TO_REPORT — email for reports.
 
-После того как я выполнил все шаги, даг начнет работать успешно :)  
+Once all steps are done, the DAG will start working successfully :)
 
-А ещё так как я любитель датавиза и в целом было бы интересно следить за ценами на квартиры в Москве, я построил дашборд, который выглядит вот так:
+And since I love data viz and tracking Moscow apartment prices is interesting, I built a dashboard that looks like this:
 
 ![Dashboard](dashboard.jpg)
 
-### Дополнительные материалы:
+### Additional materials:
 
-- Используемые материалы:
-     1. Про Xcom в airflow: [Видео](https://www.youtube.com/watch?v=8veO7-SN5ZY);
-     2. Про создание кастомного образа airflow: [Видео](https://www.youtube.com/watch?v=0UepvC9X4HY&t=165s);
-     3. Про основы работы с superset: [Видео](https://www.youtube.com/watch?v=EW1dr9sdsyQ).
+- Materials used:
+     1. About Xcom in Airflow: [Video](https://www.youtube.com/watch?v=8veO7-SN5ZY);
+     2. Creating a custom Airflow image: [Video](https://www.youtube.com/watch?v=0UepvC9X4HY&t=165s);
 
-- Доп курсы:
-     1. В ходе проекта я много пользовался таким инструментом как докер, так что очень советую посмотреть вот этот курс:
-        - [Курс по докеру](https://karpov.courses/docker);
-     2. Также советую посмотреть вот этот курс по парсингу:
-        - [Курс по парсингу](https://stepik.org/course/104774/info);
-     3. Если вы захотите поискать что-то в ваших данных, то вы точно столкнетесь с SQL, так что советую вот этот курс:
-        - [Курс по SQL](https://karpov.courses/simulator-sql).
+- Extra courses:
+     1. Since I used Docker a lot, I highly recommend this course, however, all of them are in Russia:
+        - [Docker Course](https://karpov.courses/docker);
+     2. Also recommend this parsing course:
+        - [Parsing Course](https://stepik.org/course/104774/info);
+     3. If you want to explore your data, you’ll need SQL. I recommend:
+        - [SQL Course](https://karpov.courses/simulator-sql).
