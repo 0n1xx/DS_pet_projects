@@ -8,10 +8,10 @@ from airflow import DAG
 from airflow.models import Variable
 from datetime import datetime, timedelta
 from clickhouse_driver import Client
-import emoji  # Для особой миссии !
+import emoji  # For the special mission
 import telegram
 
-# Параметры для airflow
+# Parameters for Airflow
 default_args = {
     'owner': Variable.get("AIRFLOW_OWNER"),  
     'depends_on_past': False,
@@ -38,7 +38,7 @@ def parce_flats(ti):
         print(emoji.emojize(f'Идет {page} страница :monkey:'))
         full_url = f"https://www.avito.ru/moskva/kvartiry/prodam-ASgBAgICAUSSA8YQ?cd=1&p={page}"
         source = requests.Session()
-        source.mount('https://', HTTP20Adapter())  # адаптер, чтобы сервер не воспринимал нас как бота
+        source.mount('https://', HTTP20Adapter())  # adapter so that the server does not perceive us as a bot
         response = source.get(full_url)
         sleep(7)
         response.encoding = 'utf-8'
@@ -48,7 +48,7 @@ def parce_flats(ti):
 
         for flat in all_flats:
 
-            # Ссылка на квартиру:
+            # Link to the apartment:
             var_link = flat.find("a",
                                  "link-link-MbQDP link-design-default-_nSbv title-root-zZCwT iva-item-title-py3i_ title-listRedesign-_rejR title-root_maxHeight-X6PsH")
             if var_link is not None:
@@ -57,7 +57,7 @@ def parce_flats(ti):
             else:
                 lst_links.append([None])
 
-            # Цена на квадратный метр:
+            # Price per square meter:
             var_square = flat.find("span",
                                    class_="price-noaccent-X6dOy price-normalizedPrice-PplY9 text-text-LurtD text-size-s-BxGpL")
             if var_square is not None:
@@ -67,19 +67,19 @@ def parce_flats(ti):
                 for var_square_circle in var:
                     if var_square_circle.isdigit():
                         correct_number_square_price += var_square_circle
-                # Убираем последнею цифру так как там значение в квадрате:
+                # We remove the last digit since the value there is squared:
                 correct_number_square_price = correct_number_square_price.replace(correct_number_square_price[-1],
                                                                                   "")
                 lst_square.append(correct_number_square_price)
             else:
                 lst_square.append(None)
 
-            # Полное число
+            # Full number
             var_full_price = flat.find("span", class_="price-text-_YGDY text-text-LurtD text-size-s-BxGpL")
             if var_full_price is not None:
                 full_price = var_full_price.text
                 correct_number_full_price = ""
-                # Оставляем лишь число:
+                # We leave only the number:
                 for var_full_price_circle in full_price:
                     if var_full_price_circle.isdigit():
                         correct_number_full_price += var_full_price_circle
@@ -87,7 +87,7 @@ def parce_flats(ti):
             else:
                 lst_price.append(None)
 
-            # Станция метро
+            # Metro station
             var_subway = flat.find('div', class_="geo-georeferences-SEtee text-text-LurtD text-size-s-BxGpL")
             if var_subway is not None:
                 subway_name = var_subway.text
@@ -97,7 +97,7 @@ def parce_flats(ti):
                         subway_full += var_subway_circle
                     else:
                         break
-                # Прописываю if для тех случаев когда в название метро попадает от и до:
+                # I write if for those cases when the name of the metro includes from and to:
                 if (subway_full[-1] == "т" and subway_full[-2] == "о") or (
                         subway_full[-1] == "о" and subway_full[-2] == "д"):
                     subway_full = subway_full[0:-2]
@@ -105,7 +105,7 @@ def parce_flats(ti):
             else:
                 lst_subway.append(None)
 
-            # Расстояние до метро:
+            # Distance to metro:
             var_minutes = flat.find("span", class_="geo-periodSection-bQIE4")
             if var_minutes is not None:
                 var_minutes_text = var_minutes.text
@@ -128,7 +128,7 @@ def filter_df(ti):
     df = pd.read_csv(ti.xcom_pull(key='parce_flats_df', task_ids="parce_flats"))
 
     df = df.drop_duplicates(
-        subset="links")  # порой попадаются дубликаты так как сайт 'динамически' переходит на следующею страницу
+        subset="links")  # Sometimes duplicates appear because the site 'dynamically' moves to the next page
     df = df.dropna()
     df[["square_price", "full_price"]] = df[["square_price", "full_price"]].astype("int64")
     df[["subway", "links", "destination_from_nearest_subway"]] = df[
@@ -147,7 +147,7 @@ def uncommon_values(ti):
 
     df_new = pd.read_csv(ti.xcom_pull(key="filter_parsed_data", task_ids="filter_df"))
 
-    # Достаем все записи из таблицы и создаем новый датафрейм:
+    # We extract all records from the table and create a new dataframe:
     df_old = client.execute("Select * from avito_flats")
     df_old = pd.DataFrame(
         columns=["square_price", "full_price", "subway", "links", "destination_from_nearest_subway",
@@ -178,7 +178,7 @@ def cheap_flats(ti):
     def q15(x):
         return x.quantile(0.15)
 
-    # Создаю датафрейм по каждой станции с 15 персентилем по каждой метрике
+    # I create a data frame for each station with the 10th percentile for each metric
     metro_15_percentile = df.groupby("subway", as_index=False).agg({"full_price": q15, "square_price": q15}).rename(
         columns={"full_price": "full_price_15_percentile",
                  "square_price": "square_price_15_percentile"}).sort_values(
@@ -198,12 +198,12 @@ def send_cheap_flats(ti):
     df = pd.read_csv(ti.xcom_pull(key="cheap_flats_df",task_ids="cheap_flats"))
     for index, row in df.iterrows():
         sleep(7)
-        current_row = f"На сайте появилась выгодная квартира:\n" \
-                      f"- Цена за квадратный метр следующая {row[0]};\n" \
-                      f"- Полная цена = {row[1]};\n" \
-                      f"- Кол-во квадратных метров = {row[5]};\n" \
-                      f"- Находиться на станции метро = {row[2]} ({row[4]} минуток от метро).\n" \
-                      f"Если вас заинтересовало данное предложение переходите по ссылке: {row[3]}"
+        current_row = f"A great apartment deal just appeared on the website:\n" \
+                      f"- Price per square meter: {row[0]};\n" \
+                      f"- Total price = {row[1]};\n" \
+                      f"- Area = {row[5]} square meters;\n" \
+                      f"- Located near metro station = {row[2]} ({row[4]} minutes from the metro).\n" \
+                      f"If you're interested in this offer, follow the link: {row[3]}"
         bot.sendMessage(chat_id=chat_id, text=current_row)
 
 
