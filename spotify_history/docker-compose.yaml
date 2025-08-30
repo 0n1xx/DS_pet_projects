@@ -1,0 +1,145 @@
+version: "3.9"
+
+x-airflow-common:
+  &airflow-common-env
+  AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+  AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+  AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
+  AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+  AIRFLOW__CORE__FERNET_KEY: ''
+  AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+
+services:
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 5s
+      retries: 5
+      timeout: 5s
+
+  redis:
+    image: redis:7.2-bookworm
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 5
+      timeout: 5s
+
+  airflow-init:
+    build: .
+    environment:
+      <<: *airflow-common-env
+    entrypoint: >
+      /bin/bash -c
+      "airflow db init && airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./config:/opt/airflow/config
+    user: "${AIRFLOW_UID:-50000}:0"
+
+  airflow-webserver:
+    build: .
+    restart: always
+    environment:
+      <<: *airflow-common-env
+      AIRFLOW__CORE__WEB_SERVER_PORT: 8080
+    command: webserver
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./config:/opt/airflow/config
+    user: "${AIRFLOW_UID:-50000}:0"
+
+  airflow-scheduler:
+    build: .
+    restart: always
+    environment:
+      <<: *airflow-common-env
+    command: scheduler
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./config:/opt/airflow/config
+    user: "${AIRFLOW_UID:-50000}:0"
+
+  airflow-worker:
+    build: .
+    restart: always
+    environment:
+      <<: *airflow-common-env
+    command: celery worker
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./config:/opt/airflow/config
+    user: "${AIRFLOW_UID:-50000}:0"
+
+  airflow-triggerer:
+    build: .
+    restart: always
+    environment:
+      <<: *airflow-common-env
+    command: triggerer
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./config:/opt/airflow/config
+    user: "${AIRFLOW_UID:-50000}:0"
+
+  airflow-dag-processor:
+    build: .
+    restart: always
+    environment:
+      <<: *airflow-common-env
+    command: dag-processor
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./config:/opt/airflow/config
+    user: "${AIRFLOW_UID:-50000}:0"
+
+volumes:
+  postgres-db-volume:
+  redis-data:
+  dags:
+  logs:
+  plugins:
+  config:
