@@ -7,7 +7,7 @@ Data about tracks, albums, and artists is ingested into ClickHouse using Airflow
 
 ### ⚙️ Architecture:
 
-- Airflow – orchestrates ETL processes
+- Airflow – manages ETL processes
 - Spotipy – Python SDK for Spotify API integration
 - ClickHouse – analytics-optimized data warehouse
 - Apache Superset – dashboarding and visualization 
