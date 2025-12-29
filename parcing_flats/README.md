@@ -1,122 +1,124 @@
-### Main idea of the project:
+# Moscow Apartment Listings Analyzer & Telegram Notifier
 
-- In today's world, it's very hard to find an apartment to buy. Most often, we use websites like "Avito", "DomKlik", and others, but sometimes you want to see some good deals in your feed in the morning, like in Telegram. That's exactly why I made this project :)
-I always wanted to have a bot in my Telegram that sends me good apartment deals. I had a few reasons for this:
-  - Everything is in your favourite messenger;
-  - You instantly get the best deals;
-  - You can put emojis on the listings you like.
-- To me, all this sounds great, so now about the project.
-- The channel where the apartments will be posted is [here](https://t.me/moscow_flats_bot) :)
+## Project Overview
 
-### Main technologies:
+This project addresses a practical real estate challenge: identifying promising apartment listings quickly on platforms like Avito.ru. The system automates data collection, processing, storage, and delivery by posting curated Moscow apartment deals to a Telegram channel via a custom bot.
 
-- Docker:
-  - docker-compose;
-  - Superset,
-  - Clickhouse (Database),
-  - Airflow.
-- Python:
-  - apache-airflow and other components;
-  - beautifulsoup4;
-  - clickhouse-driver;
-  - hyper;
-  - pandas;
-  - telegram and other components;
-  - emoji (can’t go without it) :)
-- Git and basic command line knowledge.
+**Telegram Channel**: [t.me/moscow_flats_bot](https://t.me/moscow_flats_bot)
 
-More about versions and library components can be found in the requirements.txt file.
+**Core Benefits**
+- Instant notifications of new or high-potential listings
+- Convenient access within Telegram
+- Interactive feedback (e.g., emoji reactions for bookmarking)
 
-### Project steps:
+The architecture forms a complete data pipeline: web scraping → cleaning → analytical storage → orchestration → notification, with optional visualization.
 
-Initial requirements:
-- Everything in the instructions is adapted only for Debian-based machines.
-- Ideally, you should be familiar with the technologies listed above.
+## Key Technologies
 
-1. First, let's check if you have git and Docker. To do this, run:
-   - For Docker:
-     ```docker ps```
-   - For git:
-     ```git --version```
-   If all is good, continue following the manual. If you get an error, you can Google the error or try reinstalling git and Docker:
-      - [Docker Docs](https://docs.docker.com/engine/install/ubuntu/);
-      - [Docker Install Guide](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04-ru);
-      - [Git Install Guide](https://www.digitalocean.com/community/tutorials/how-to-install-git-on-ubuntu-20-04).
+**Infrastructure & Orchestration**
+- Docker & Docker Compose – reproducible environments
+- Apache Airflow – workflow scheduling and DAG management
+- ClickHouse – column-oriented database for fast analytical queries
+- Apache Superset – data exploration and dashboarding
 
-2. Now let's launch Superset and Clickhouse:
-   1. First, create a volume to store our apartment data:
-      - ```docker volume create your_volume_name```
-   2. Then create a network for Superset and Clickhouse so they can communicate. More details [here](https://www.youtube.com/watch?v=bKFMS5C4CG0). To do this:
-      - ```docker network create your_network_name```
-   3. Next, let's run our Superset container. More details [here](https://hub.docker.com/r/apache/superset), but for now just run:
-      - ```docker run -d --net=your_network_name -p your_pc_port:8088 --name superset apache/superset```
+**Python Libraries**
+- BeautifulSoup4 – web scraping and HTML parsing
+- Pandas – data cleaning and transformation
+- ClickHouse-Driver / ClickHouse-SQLAlchemy – database connectivity
+- Python-Telegram-Bot – formatted message delivery
+- Hyper – HTTP client
+- Emoji – message enhancement
 
-      A few notes:
+Full dependencies are listed in `requirements.txt`.
 
-      - ```--net=your_network_name``` — network name for Superset container;
-      - ```-p your_pc_port:8088``` — left is your host port, right is container port;
-      - ```--name superset``` — set a name for the container;
-      - Then we specify the image.
+**Additional Tools**
+- Git – version control
+- Basic Linux command-line operations
 
-   4. Now let’s create a superuser in Superset using this command:
-      ``` 
-        docker exec -it superset superset fab create-admin \
-              --username your_username \
-              --firstname Superset \ 
-              --lastname Admin \ 
-              --email admin@superset.com  \
-              --password your_password \
-      ```
-   5. Then apply migrations and initialize Superset:
-      - ```docker exec -it superset superset db upgrade```;
-      - ```docker exec -it superset superset init```.
-   6. Done with Superset for now, let’s set up the database — Clickhouse:
-      - ```
-        docker run -d\
-        --name clickhouse\
-        --net=your_network_name\
-         -v your_volume_name:/var/lib/clickhouse\
-         -p your_pc_port:9000\
-          yandex/clickhouse-server
-        ```
-      A few notes:
-      - ```-v your_volume_name:/var/lib/clickhouse``` — left is your volume name, right is the directory in the container being tracked.
+## Architecture & Workflow
 
-   7. The last step is connecting Clickhouse to Superset. Out of the box, it's not supported, but this library can help: [info](https://superset.apache.org/docs/databases/clickhouse/). Install it with:
-      - ```docker exec superset pip install clickhouse-sqlalchemy```
-        
-3. Now you need to clone the repo with my code, custom Airflow, and the requirements file. Use this command:  
-   - ```git clone link_to_repository```
-4. Next, build the image for our custom Airflow:
-   - ```docker build . --tag your_custom_airflow:latest```
-   More about Docker build [here](https://docs.docker.com/engine/reference/commandline/build/).
-5. Airflow consists of multiple services, and to deploy them together, use docker-compose. To install it:
-   - [Docker-compose Docs](https://docs.docker.com/compose/install/);
-   - [Guide](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-20-04).
-6. After installing, download the Airflow `docker-compose.yaml`. A small guide is [here](https://airflow.apache.org/docs/apache-airflow/2.5.1/docker-compose.yaml);
-7. After downloading and creating the needed directories, bring up the services:
-   - ```docker-compose up```
-8. After starting, a default network called airflow_default is created. But Clickhouse and Superset are in a different network, so connect all Airflow containers to your custom network:
-   - ```docker network connect your_network_name your_container_name``` — more info [here](https://docs.docker.com/engine/reference/commandline/network_connect/).
-9. You’ll notice variables in my script that only Airflow sees. You need to fill them out, too:
-    - AIRFLOW_OWNER — name of the DAG owner;
-    - CLICKHOUSE_HOST — IP of Clickhouse;
-    - TG_TOKEN_AVITO — bot token;
-    - CHAT_ID_MOSCOW_FLATS — chat ID;
-    - MAIL_TO_REPORT — email for reports.
+1. **Ingestion** – Scheduled scraping of Avito.ru listings using BeautifulSoup
+2. **Processing** – Normalization and cleaning with Pandas (price conversion, address parsing, missing values)
+3. **Storage** – Loading structured data into ClickHouse
+4. **Notification** – Selective high-value listings sent to Telegram
+5. **Orchestration** – Apache Airflow DAG managing the full ETL + notification flow
+6. **Exploration** – Superset connected to ClickHouse for ad-hoc analysis
 
-Once all steps are done, the DAG will start working successfully :)
+## Setup Instructions
 
-### Additional materials:
+Instructions are optimized for Debian-based systems. Familiarity with Docker and command-line basics is recommended.
 
-- Materials used:
-     1. About Xcom in Airflow: [Video](https://www.youtube.com/watch?v=8veO7-SN5ZY);
-     2. Creating a custom Airflow image: [Video](https://www.youtube.com/watch?v=0UepvC9X4HY&t=165s);
+### Prerequisites
+```bash
+docker ps          # Verify Docker
+git --version      # Verify Git
+```
+1. Prepare Shared Resources
+```bash
+docker volume create flats_data_volume
+docker network create flats_network
+```
+2. Launch Apache Superset
+```bash
+docker run -d --net flats_network -p 8088:8088 --name superset apache/superset
 
-- Extra courses:
-     1. Since I used Docker a lot, I highly recommend this course, however, all of them are in Russia:
-        - [Docker Course](https://karpov.courses/docker);
-     2. Also recommend this parsing course:
-        - [Parsing Course](https://stepik.org/course/104774/info);
-     3. If you want to explore your data, you’ll need SQL. I recommend:
-        - [SQL Course](https://karpov.courses/simulator-sql).
+docker exec -it superset superset fab create-admin \
+  --username admin --firstname Superset --lastname Admin \
+  --email admin@superset.com --password your_password
+
+docker exec -it superset superset db upgrade
+docker exec -it superset superset init
+```
+3. Launch ClickHouse
+```bash
+docker run -d --name clickhouse --net flats_network \
+  -v flats_data_volume:/var/lib/clickhouse \
+  -p 9000:9000 -p 8123:8123 yandex/clickhouse-server
+```
+4. Connect ClickHouse to Superset
+```bash
+docker exec superset pip install clickhouse-sqlalchemy
+```
+5. Clone Repository & Build Custom Airflow Image
+```bash
+git clone https://github.com/0n1xx/DS_pet_projects.git
+cd DS_pet_projects/parcing_flats
+docker build . --tag custom-airflow:latest
+```
+6. Deploy Airflow
+```bash
+docker-compose up -d
+```
+7. Connect Networks
+```bash
+docker network connect flats_network airflow_airflow-scheduler_1
+docker network connect flats_network airflow_airflow-worker_1
+# Repeat for additional Airflow containers if needed
+```
+8. Configure Airflow Variables
+Set via Airflow UI or environment:
+
+- AIRFLOW_OWNER
+- CLICKHOUSE_HOST
+- TG_TOKEN_AVITO
+- CHAT_ID_MOSCOW_FLATS
+- MAIL_TO_REPORT
+
+The DAG will then execute automatically and begin posting listings.
+
+## Learning Resources
+
+- Airflow XCom usage: [YouTube Video](https://www.youtube.com/watch?v=8veO7-SN5ZY)  
+- Custom Airflow Docker images: [YouTube Video](https://www.youtube.com/watch?v=0UepvC9X4HY)  
+
+**Recommended courses (Russian-language)**  
+- Docker fundamentals: [karpov.courses/docker](https://karpov.courses/docker)  
+- Web scraping: [stepik.org/course/104774](https://stepik.org/course/104774)  
+- SQL for data analysis: [karpov.courses/simulator-sql](https://karpov.courses/simulator-sql)  
+
+This project showcases end-to-end data engineering skills: robust scraping, pipeline orchestration, containerization, analytical storage, and real-time notification delivery.
+
+Contributions and feedback are welcome.
+
+— Vlad Sakharov  
+Data Engineer / Data Scientist
