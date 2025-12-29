@@ -1,192 +1,109 @@
-# 🎵 Spotify Statistics
+# Spotify Listening History Analytics Pipeline
 
-### 📌 Project Overview:
+## Project Overview
 
-This project automates the collection and analysis of listening history from the Spotify API.
-Data about tracks, albums, and artists is ingested into ClickHouse using Airflow, and then visualized in Apache Superset.
+This project implements an automated ETL pipeline for collecting, storing, and analyzing personal Spotify listening history. Data is extracted from the Spotify Web API, transformed, loaded into an analytical database, and visualized through interactive dashboards.
 
-### ⚙️ Architecture:
+The solution demonstrates a production-like data workflow suitable for music consumption insights, including top artists, albums, tracks, and temporal listening patterns.
 
-- Airflow – manages ETL processes
-- Spotipy – Python SDK for Spotify API integration
-- ClickHouse – analytics-optimized data warehouse
-- Apache Superset – dashboarding and visualization 
-- Docker Compose – manages containerized services
+## Architecture
 
-### 🔑 Spotify Authentication:
+- **Apache Airflow** – Orchestrates the end-to-end ETL process (extraction, transformation, loading)
+- **Spotipy** – Python client for Spotify Web API integration
+- **ClickHouse** – Columnar database optimized for high-performance analytical queries on large datasets
+- **Apache Superset** – BI tool for building dashboards and exploring stored data
+- **Docker & Docker Compose** – Containerization and service orchestration for reproducible deployment
 
-The project uses OAuth2 for Spotify API access: A refresh token is obtained manually once. This refresh token is stored securely in Airflow Variables along with client_id, client_secret, and redirect_uri. Airflow automatically uses the refresh token to generate short-lived access tokens and pull listening data.
+## Data Collected
 
-### 📊 Data Collected:
-- Played Time 
-- Artist
+For each played track:
+- Playback timestamp
+- Track name
+- Artist(s)
 - Album
-- Song
-- Date
+- Duration and other metadata
 
-### 📈 Dashboards:
+## Key Features & Dashboards
 
-Data stored in ClickHouse is visualized through Superset dashboards, including:
-- Recently played timeline
-- Top artists / albums ranking
-- Daily listening trends
+Once loaded into ClickHouse and connected to Superset:
+- Timeline of recently played tracks
+- Rankings of top artists, albums, and songs (all-time or filtered by period)
+- Daily/weekly/monthly listening trends
+- Custom explorations via SQL queries in Superset
 
-### ✅ Spotify API prerequirements: 
+## Prerequisites
 
-Before you can run this project and access your Spotify listening data, you need to set up Spotify API credentials and authentication.
+- Docker and Docker Compose
+- Spotify Developer Account and registered application [](https://developer.spotify.com/dashboard/)
 
-1. Create a Spotify Developer Account 
-   1. Go to Spotify Developer Dashboard 
-   2. Log in with your Spotify account 
-   3. Click Create an App 
-   4. Give it a name (e.g., SpotifyStatsPipeline)
+## Spotify API Setup
 
-2. Configure Redirect URI 
-   1. In your app settings, find Redirect URIs 
-   2. Add your redirect URI (example: http://localhost:7777/callback or your server callback URL)
-   3. Save changes
+The project uses OAuth 2.0 with refresh token flow for secure, long-term access.
 
-3. Get Your Credentials 
-   1. Copy the following values from your app settings:
-      - Client ID 
-      - Client Secret 
-   2. These will be used in Airflow Variables.
+1. **Create a Spotify App**
+   - Log in to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/)
+   - Create a new app
+   - Note **Client ID** and **Client Secret**
+   - Add a Redirect URI (e.g., `http://localhost:7777/callback`)
 
-4. Generate a Refresh Token
+2. **Generate Refresh Token (One-Time)**
+   - Run the provided `local_script.ipynb` notebook
+   - Follow the authentication flow in your browser
+   - Grant required permissions (`user-read-recently-played`, `user-library-read`, etc.)
+   - Extract the refresh token from the output
 
-The Spotify API requires OAuth2. Since access tokens expire quickly, you need a refresh token to keep renewing them automatically.
-
-Steps:
-
-1. Use a [local script](local_script.ipynb) (with Spotipy
-) to authenticate manually once. 
-2. The script will open a browser asking for Spotify login & permissions. 
-3. Approve access and copy the redirected URL. 
-4. Extract the refresh token from the script’s output. 
-5. You will only need to do this step once. 
-6. Store Credentials in Airflow
-
-In Airflow UI → Admin → Variables, add the following:
-
-| Key                   | Value (example)                |
-|------------------------|--------------------------------|
-| SPOTIFY_CLIENT_ID      | your_client_id                 |
-| SPOTIFY_CLIENT_SECRET  | your_client_secret             |
-| SPOTIFY_REDIRECT_URI   | http://localhost:7777/callback |
-| SPOTIFY_REFRESH_TOKEN  | your_refresh_token             |
-
-
-Make sure values are entered without quotes ' '.
-
-⚠️ Note: Without these steps, Airflow cannot authenticate with Spotify and your DAGs will fail.
-
-### ⚙️ Docker part:
-
-Make sure you have installed:
-
-- [Docker](https://docs.docker.com/get-docker/)  
-- [Docker Compose](https://docs.docker.com/compose/)  
-- A **Spotify Developer Account** with an app created ([Guide](https://developer.spotify.com/dashboard/))  
-
-This repository also includes:
-
-- [requirements.txt](requirements.txt) → Python dependencies (Spotipy, Airflow extras, etc.)  
-- [Dockerfile](Dockerfile) → custom Airflow image with dependencies  
-- [docker-compose.yml](docker-compose.yml) → services for Airflow, ClickHouse, and Superset 
-
----
-
-#### 🔑 Environment Variables
-
-Before running, create a `.env` file in the project root with your credentials:
-
-| Key                   | Value (example)                  |
-|-----------------------|----------------------------------|
-| SPOTIFY_CLIENT_ID     | your_client_id                   |
-| SPOTIFY_CLIENT_SECRET | your_client_secret               |
-| SPOTIFY_REDIRECT_URI  | http://localhost:7777/callback   |
-| SPOTIFY_REFRESH_TOKEN | your_refresh_token               |
-
----
-
-### Airflow:
-
-1️⃣ Build and start all services:
+3. **Store Credentials**
+   Create a `.env` file in the project root:
+   ```env
+   SPOTIFY_CLIENT_ID=your_client_id
+   SPOTIFY_CLIENT_SECRET=your_client_secret
+   SPOTIFY_REDIRECT_URI=http://localhost:7777/callback
+   SPOTIFY_REFRESH_TOKEN=your_refresh_token
+   ```
+## Deployment Instructions
+1. Start Services
 ```bash
 docker-compose up -d --build
 ```
-
-2️⃣ Check running containers:
-
+2. Verify Containers
 ```bash
 docker ps
 ```
-
-3️⃣ Starting all containers:
-```bash
-docker compose up -d
-```
-
-### Clickhouse:
-
-1️⃣ Pull the imagine:
-
-```bash
-docker pull clickhouse/clickhouse-server:latest
-```
-
-2️⃣ Start your database container:
-
-```bash
-docker run -d \
---name your_name \ 
---net=your_network_name \
--v your_volume:/var/lib/clickhouse \
--p 9000:9000 \
--p 8123:8123 \
--e CLICKHOUSE_USER=your_login \
--e CLICKHOUSE_PASSWORD=your_password \
-clickhouse/clickhouse-server
-```
-
-### Superset:
-
-1️⃣ Pull the imagine:
-
-```bash
-docker pull apache/superset:4.0.0
-```
-
-2️⃣ Start your bi container:
-
-```bash
-docker run -d \
-  --name your_name \
-  --network your_network_name \
-  -p 8088:8088 \
-  -e SUPERSET_HOME=/app/superset_home \
-  -e SUPERSET_SECRET_KEY="" \
-  apache/superset:4.0.0
-```
-
-3️⃣ Create an admin user and run updates after:
-
+3. Access Tools
+- Airflow UI: http://localhost:8080 (default: airflow/airflow)
+- Superset UI: http://localhost:8088
+- ClickHouse: accessible via port 9000 (TCP) and 8123 (HTTP)
+4. Initialize Superset
 ```bash
 docker exec -it superset superset fab create-admin \
-    --username your_username \
-    --firstname your_first_name \
-    --lastname your_last_name \
-    --email your_email \
-    --password your_password
-```
+  --username admin \
+  --firstname Admin \
+  --lastname User \
+  --email admin@example.com \
+  --password your_password
 
-```bash
-docker exec -it superset superset db upgrade;
+docker exec -it superset superset db upgrade
 docker exec -it superset superset init
 ```
-
-4️⃣ Install clickhouse driver for Superset:
-
+5. Install ClickHouse Driver in Superset
 ```bash
 docker exec superset pip install clickhouse-sqlalchemy
 ```
+After setup, connect Superset to ClickHouse using the container network and credentials.
+The Airflow DAG will automatically:
+
+- Refresh the access token
+- Pull extended listening history
+- Load data into ClickHouse
+
+## Repository Contents
+
+- `requirements.txt` — Python dependencies (Spotipy, Airflow providers, etc.)
+- `Dockerfile` — Custom Airflow image with required packages pre-installed
+- `docker-compose.yml` — Orchestrates the full stack (Airflow, ClickHouse, Superset)
+- `dags/` — Airflow DAG definitions for extraction, transformation, and loading
+- `local_script.ipynb` — Jupyter notebook for one-time generation of Spotify refresh token
+
+This project highlights practical skills in API integration, ETL orchestration, containerized deployment, and analytical database management — foundational competencies for data engineering and analytics roles.
+
+Feedback and contributions are welcome.
