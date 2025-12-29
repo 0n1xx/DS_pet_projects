@@ -1,28 +1,38 @@
-### About the repository:
-____
+# DS Pet Projects
 
-This repository will store my pet projects. The idea of each project is that I study some technology, and then do some task that I came up with myself. I’ll also be writing about my upcoming learning plans.
+This repository contains my personal data science and data engineering projects. Each one started as a way to explore a specific tool or technique, then turned into a practical end-to-end workflow using real data sources.
 
-### Analytical microservice for apartment analysis in Moscow:
-- In this project, I got familiar with parsing, specifically using the library (BeautifulSoup), and also studied Docker — huge thanks to my colleague Anton for that, here’s his excellent [course](https://karpov.courses/docker). Going forward, I want to dive deeper into parsing, namely:
-  - selenium (I started, but didn’t finish the basics);
-  - parsing Telegram;
-  - asynchronous parsing.
+Currently focusing on data ingestion, cleaning, pipeline orchestration, and analytical storage — all built with Python and modern data tools.
 
-I also started to realize that I enjoy cleaning data and working with data delivery in one way or another, so maybe I’ll take a course in [DE](https://karpov.courses/dataengineer). Anyway, doing and learning something new is fun :)
+### Moscow Apartment Listings Scraper (parcing_flats/)
+A scraper for apartment listings on Avito.ru across Moscow districts. It extracts structured data from dynamic real estate pages and prepares it for analysis.
 
-And the project itself can be seen [here](https://github.com/0n1xx/Pet_projects/blob/main/parcing_flats/parcing_flats_avito.ipynb).
+**Implementation**  
+- Parsing with **BeautifulSoup** (handling pagination, varying HTML structures)  
+- Extensive data cleaning: price normalization, address parsing, feature extraction (floor, total floors, subway distance, etc.)  
+- Full containerization using **Docker** for reproducible runs  
 
-___
+**Key takeaways**  
+Gained solid experience dealing with unstructured web data, improving scraper reliability, and ensuring data quality in noisy environments.
 
-### 🎵 Spotify Statistics
-In this project, I got familiar with working with external APIs, specifically using the Spotify API through the Spotipy library. I also continued studying Airflow for orchestrating ETL processes and ClickHouse for storing analytical data. Docker and Docker Compose helped me keep everything organized across services.
+**Planned improvements**  
+Scheduled execution, asynchronous parsing (or Selenium for JS-heavy pages), Telegram alerts on new runs, and persistent storage in an analytical database for trend analysis.
 
-Going forward, I want to dive deeper into data pipelines and visualization:
-- enriching Spotify data with external sources (genres, moods, etc.);
-- building more advanced Superset dashboards;
-- experimenting with real-time streaming pipelines.
+### Spotify Listening History Pipeline (spotify_history/)
+An ETL pipeline that extracts extended Spotify listening history, transforms it, and loads it into an analytical store.
 
-I also started to realize that I enjoy orchestrating data flows end-to-end, from ingestion to visualization — so maybe I’ll explore more tools in the Data Engineering stack. Anyway, doing and learning something new is always fun :)
+**Implementation**  
+- Data extraction via **Spotipy** and Spotify API  
+- Orchestration and scheduling with **Apache Airflow** (DAGs for extract → transform → load)  
+- Storage in **ClickHouse** for high-performance analytical queries  
+- Multi-service environment managed through **Docker Compose**  
 
-The project itself can be viewed [here](https://github.com/0n1xx/Pet_projects/tree/main/spotify_history).
+**Key takeaways**  
+Built hands-on experience with production-style data pipelines, task scheduling, container orchestration, and working with column-oriented databases.
+
+**Planned improvements**  
+Enrich data with track/artist metadata, add visualization layer (Superset dashboards), and explore incremental/real-time updates.
+
+These projects demonstrate my current capabilities in data collection (web scraping & APIs), cleaning, pipeline design, and deployment — areas I continue to expand as I learn.
+
+Feel free to review the code or reach out with questions !
