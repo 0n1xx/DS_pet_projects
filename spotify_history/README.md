@@ -351,11 +351,9 @@ docker exec -it superset superset fab create-admin \
 
 ## Repository Contents
 
-- `requirements.txt` — Python dependencies (Spotipy, Airflow providers, etc.)
-- `Dockerfile` — Custom Airflow image with required packages pre-installed
-- `docker-compose.yml` — Orchestrates the full stack (Airflow, ClickHouse, Superset)
-- `dags/` — Airflow DAG definitions for extraction, transformation, and loading
-- `local_script.ipynb` — Jupyter notebook for one-time generation of Spotify refresh token
+- `requirements.txt` — Python dependencies (Spotipy, Airflow providers, etc.);
+- `spotify.py` - Dag that collects data from spotify listening history;
+- `local_script.ipynb` — Jupyter notebook for one-time generation of Spotify refresh token.
 
 This project highlights practical skills in API integration, ETL orchestration, containerized deployment, and analytical database management — foundational competencies for data engineering and analytics roles.
 
