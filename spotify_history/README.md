@@ -7,7 +7,7 @@ This project implements an automated ETL pipeline for collecting, storing, and a
 The solution demonstrates a production-like data workflow suitable for music consumption insights, including top artists, albums, tracks, and temporal listening patterns.
 
 ## A possible result:
-![Spotify Stats Dashboard](spotify-stats-dashboard.jpg)
+![Spotify Stats Dashboard](spotify_stats_dashboard.jpg)
 
 ## Architecture
 
