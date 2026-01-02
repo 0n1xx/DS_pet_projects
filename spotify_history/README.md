@@ -6,6 +6,9 @@ This project implements an automated ETL pipeline for collecting, storing, and a
 
 The solution demonstrates a production-like data workflow suitable for music consumption insights, including top artists, albums, tracks, and temporal listening patterns.
 
+## A possible result:
+[]()
+
 ## Architecture
 
 - **Apache Airflow** – Orchestrates the end-to-end ETL process (extraction, transformation, loading)
